@@ -256,8 +256,23 @@ function CategorySheet({ onClose }: { onClose: () => void }) {
   const [editingName, setEditingName] = useState("");
   const [rowError, setRowError] = useState<{ id: string; message: string } | null>(null);
   const [status, setStatus] = useState("");
+  const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<CategorySort>("name-asc");
 
-  const list = categories.filter((c) => c.type === type);
+  const list = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const rows = categories.filter(
+      (c) => c.type === type && (!q || c.name.toLowerCase().includes(q)),
+    );
+    return rows.sort((a, b) => {
+      if (sort === "name-desc") return b.name.localeCompare(a.name);
+      if (sort === "most-used") {
+        const diff = categoryUsage(b.id) - categoryUsage(a.id);
+        return diff !== 0 ? diff : a.name.localeCompare(b.name);
+      }
+      return a.name.localeCompare(b.name);
+    });
+  }, [categories, categoryUsage, query, sort, type]);
 
   const startRename = (id: string, current: string) => {
     setEditingId(id);
@@ -265,21 +280,33 @@ function CategorySheet({ onClose }: { onClose: () => void }) {
     setRowError(null);
   };
 
+  const announce = (message: string, ok: boolean) => {
+    setStatus(message);
+    if (ok) toast.success(message);
+    else toast.error(message);
+  };
+
   const commitRename = (id: string) => {
     const ok = renameCategory(id, editingName);
-    if (!ok) return setRowError({ id, message: copy.invalidCategory });
+    if (!ok) {
+      setRowError({ id, message: copy.invalidCategory });
+      announce(copy.invalidCategory, false);
+      return;
+    }
     setEditingId(null);
     setEditingName("");
     setRowError(null);
-    setStatus(copy.categoryRenamed);
+    announce(copy.categoryRenamed, true);
   };
 
   const removeCategory = (id: string) => {
-    if (categoryUsage(id) > 0) return setRowError({ id, message: copy.categoryInUse });
-    const ok = deleteCategory(id);
-    if (!ok) return setRowError({ id, message: copy.categoryInUse });
+    if (categoryUsage(id) > 0 || !deleteCategory(id)) {
+      setRowError({ id, message: copy.categoryInUse });
+      announce(copy.categoryInUse, false);
+      return;
+    }
     setRowError(null);
-    setStatus(copy.categoryDeleted);
+    announce(copy.categoryDeleted, true);
   };
 
   const submit = (e: React.FormEvent) => {
