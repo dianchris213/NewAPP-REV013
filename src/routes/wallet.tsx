@@ -187,49 +187,105 @@ function Wallet() {
           </button>
         </div>
         <div className="flex flex-col gap-3">
-          {grouped.map((group) => (
-            <div key={group.type}>
-              <h3 className="mb-1.5 text-label uppercase text-primary">
-                {WALLET_TYPE_LABEL[group.type]}
-              </h3>
-              <div className="glass-card rounded-[16px] px-4">
-                {group.items.length ? (
-                  group.items.map((w) => (
-                    <button
-                      key={w.id}
-                      type="button"
-                      data-testid={`wallet-account-${w.id}`}
-                      aria-haspopup="dialog"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setHistoryId(w.id);
-                      }}
-                      className="flex w-full items-center gap-3 border-b border-outline-variant/20 py-3 text-left last:border-0 focus-visible:ring-2 focus-visible:ring-primary/60"
-                    >
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-surface-variant text-primary">
-                        <Icon name={WALLET_ICON[w.type]} className="text-[20px]" />
-                      </span>
-                      <span className="flex min-w-0 flex-1 flex-col">
-                        <span className="truncate text-body font-medium text-on-surface">
-                          {w.name}
-                        </span>
-                        <span className="truncate text-meta text-on-surface-variant/80">
-                          {w.provider ?? WALLET_TYPE_LABEL[w.type]}
-                        </span>
-                      </span>
-                      <span className="shrink-0 text-body font-semibold text-on-surface">
-                        {formatIDR(w.balance)}
-                      </span>
-                      <Icon name="chevron_right" className="text-[18px] text-on-surface-variant" />
-                    </button>
-                  ))
-                ) : (
-                  <p className="py-3 text-meta text-on-surface-variant/70">—</p>
-                )}
+          {grouped.map((group) => {
+            const open = expandedTypes.includes(group.type);
+            const groupTotal = group.items.reduce((sum, w) => sum + w.balance, 0);
+            const providerGroups = providerBreakdown(group.type, group.items);
+            return (
+              <div key={group.type} className="glass-card rounded-[16px] px-4">
+                <button
+                  type="button"
+                  data-testid={`wallet-group-${group.type}`}
+                  aria-expanded={open}
+                  aria-controls={`wallet-group-panel-${group.type}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleType(group.type);
+                  }}
+                  className="flex w-full items-center gap-3 py-3 text-left focus-visible:ring-2 focus-visible:ring-primary/60"
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-surface-variant text-primary">
+                    <Icon name={WALLET_ICON[group.type]} className="text-[20px]" />
+                  </span>
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <span className="truncate text-body font-semibold text-on-surface">
+                      {WALLET_TYPE_LABEL[group.type]}
+                    </span>
+                    <span className="truncate text-meta text-on-surface-variant/80">
+                      {`${group.items.length} akun · ${providerGroups.length} jenis`}
+                    </span>
+                  </span>
+                  <span className="shrink-0 text-body font-semibold text-on-surface">
+                    {formatIDR(groupTotal)}
+                  </span>
+                  <Icon
+                    name="expand_more"
+                    className={`text-[18px] text-on-surface-variant transition-transform ${
+                      open ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                <div
+                  id={`wallet-group-panel-${group.type}`}
+                  aria-hidden={!open}
+                  className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
+                    open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                  }`}
+                >
+                  <div className="overflow-hidden">
+                    <div className="border-t border-outline-variant/20 pb-2">
+                      {providerGroups.length ? (
+                        providerGroups.map((pg) => (
+                          <div key={pg.provider} className="pt-2">
+                            <h4 className="mb-1 text-label uppercase text-primary/80">
+                              {pg.provider}
+                            </h4>
+                            {pg.items.map((w) => (
+                              <button
+                                key={w.id}
+                                type="button"
+                                data-testid={`wallet-account-${w.id}`}
+                                aria-haspopup="dialog"
+                                tabIndex={open ? 0 : -1}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setHistoryId(w.id);
+                                }}
+                                className="flex w-full items-center gap-3 border-b border-outline-variant/20 py-2.5 pl-2 text-left last:border-0 focus-visible:ring-2 focus-visible:ring-primary/60"
+                              >
+                                <span className="flex min-w-0 flex-1 flex-col">
+                                  <span className="truncate text-body font-medium text-on-surface">
+                                    {w.name}
+                                  </span>
+                                  <span className="truncate text-meta text-on-surface-variant/80">
+                                    {w.provider ?? WALLET_TYPE_LABEL[w.type]}
+                                  </span>
+                                </span>
+                                <span className="shrink-0 text-body font-semibold text-on-surface">
+                                  {formatIDR(w.balance)}
+                                </span>
+                                <Icon
+                                  name="chevron_right"
+                                  className="text-[18px] text-on-surface-variant"
+                                />
+                              </button>
+                            ))}
+                          </div>
+                        ))
+                      ) : (
+                        <p className="py-3 text-meta text-on-surface-variant/70">
+                          Belum ada kantong pada jenis ini.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
+
       </section>
 
       <section className="mt-stack-lg">
