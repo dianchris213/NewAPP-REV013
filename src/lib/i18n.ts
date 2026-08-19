@@ -125,6 +125,12 @@ const dictionaries: Record<Language, Dict> = {
     noResults: "Tidak ada transaksi yang cocok.",
     categoryDeleted: "Kategori dihapus",
     categoryRenamed: "Nama kategori diperbarui",
+    searchCategories: "Cari kategori",
+    sortLabel: "Urutkan",
+    sortNameAsc: "Nama (A-Z)",
+    sortNameDesc: "Nama (Z-A)",
+    sortMostUsed: "Paling sering dipakai",
+    noCategoryResults: "Tidak ada kategori yang cocok.",
   },
   en: {
     settingsEyebrow: "Configuration",
@@ -184,6 +190,12 @@ const dictionaries: Record<Language, Dict> = {
     noResults: "No matching transactions.",
     categoryDeleted: "Category deleted",
     categoryRenamed: "Category renamed",
+    searchCategories: "Search categories",
+    sortLabel: "Sort",
+    sortNameAsc: "Name (A-Z)",
+    sortNameDesc: "Name (Z-A)",
+    sortMostUsed: "Most used",
+    noCategoryResults: "No categories match your search.",
   },
 };
 
