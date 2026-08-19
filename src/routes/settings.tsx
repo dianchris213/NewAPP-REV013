@@ -237,15 +237,50 @@ function SettingsPage() {
 
 /** Manage user-owned transaction categories (empty by default). */
 function CategorySheet({ onClose }: { onClose: () => void }) {
-  const { language, categories, addCategory, deleteCategory, wallets } = useApp();
+  const {
+    language,
+    categories,
+    addCategory,
+    renameCategory,
+    deleteCategory,
+    categoryUsage,
+    wallets,
+  } = useApp();
   const copy = t(language);
   const ref = useModalA11y<HTMLDivElement>(true, onClose);
   const [type, setType] = useState<TxType>("expense");
   const [name, setName] = useState("");
   const [walletId, setWalletId] = useState("");
   const [error, setError] = useState<string | undefined>(undefined);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
+  const [rowError, setRowError] = useState<{ id: string; message: string } | null>(null);
+  const [status, setStatus] = useState("");
 
   const list = categories.filter((c) => c.type === type);
+
+  const startRename = (id: string, current: string) => {
+    setEditingId(id);
+    setEditingName(current);
+    setRowError(null);
+  };
+
+  const commitRename = (id: string) => {
+    const ok = renameCategory(id, editingName);
+    if (!ok) return setRowError({ id, message: copy.invalidCategory });
+    setEditingId(null);
+    setEditingName("");
+    setRowError(null);
+    setStatus(copy.categoryRenamed);
+  };
+
+  const removeCategory = (id: string) => {
+    if (categoryUsage(id) > 0) return setRowError({ id, message: copy.categoryInUse });
+    const ok = deleteCategory(id);
+    if (!ok) return setRowError({ id, message: copy.categoryInUse });
+    setRowError(null);
+    setStatus(copy.categoryDeleted);
+  };
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -254,6 +289,7 @@ function CategorySheet({ onClose }: { onClose: () => void }) {
     setName("");
     setError(undefined);
   };
+
 
   return (
     <div
