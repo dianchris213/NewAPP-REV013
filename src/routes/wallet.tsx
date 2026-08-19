@@ -448,10 +448,33 @@ function AccountHistorySheet({
   onClose: () => void;
 }) {
   const ref = useModalA11y<HTMLDivElement>(true, onClose);
+  const { language } = useApp();
+  const copy = t(language);
+  const [keyword, setKeyword] = useState("");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+
   const sorted = useMemo(
     () => [...rows].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
     [rows],
   );
+
+  const filtered = useMemo(() => {
+    const q = keyword.trim().toLowerCase();
+    const fromTime = from ? new Date(`${from}T00:00:00`).getTime() : null;
+    const toTime = to ? new Date(`${to}T23:59:59.999`).getTime() : null;
+    return sorted.filter((tx) => {
+      if (q && !`${tx.category} ${tx.note}`.toLowerCase().includes(q)) return false;
+      const time = new Date(tx.date).getTime();
+      if (fromTime !== null && Number.isFinite(fromTime) && time < fromTime) return false;
+      if (toTime !== null && Number.isFinite(toTime) && time > toTime) return false;
+      return true;
+    });
+  }, [sorted, keyword, from, to]);
+
+  const dirty = !!(keyword || from || to);
+  const rangeInvalid = !!(from && to && from > to);
+
 
   return (
     <SheetPortal>
