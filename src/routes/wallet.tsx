@@ -105,7 +105,14 @@ function Wallet() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [activityFilter, setActivityFilter] = useState<"all" | WalletActivityKind>("all");
   const [historyId, setHistoryId] = useState<string | null>(null);
+  const [expandedTypes, setExpandedTypes] = useState<WalletType[]>(["cash"]);
+  const toggleType = useCallback((type: WalletType) => {
+    setExpandedTypes((prev) =>
+      prev.includes(type) ? prev.filter((t2) => t2 !== type) : [...prev, type],
+    );
+  }, []);
   const copy = t(language);
+
 
   const combined = useMemo(() => wallets.reduce((sum, w) => sum + w.balance, 0), [wallets]);
 
