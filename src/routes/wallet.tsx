@@ -611,8 +611,11 @@ function AccountHistorySheet({
               ))}
             </ul>
           ) : (
-            <p className="mt-6 text-center text-[12px] text-on-surface-variant/70">{emptyLabel}</p>
+            <p className="mt-6 text-center text-[12px] text-on-surface-variant/70">
+              {sorted.length ? copy.noResults : emptyLabel}
+            </p>
           )}
+
 
           <button
             type="button"
