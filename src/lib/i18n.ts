@@ -58,6 +58,12 @@ type Dict = {
   noResults: string;
   categoryDeleted: string;
   categoryRenamed: string;
+  searchCategories: string;
+  sortLabel: string;
+  sortNameAsc: string;
+  sortNameDesc: string;
+  sortMostUsed: string;
+  noCategoryResults: string;
 };
 
 const dictionaries: Record<Language, Dict> = {
