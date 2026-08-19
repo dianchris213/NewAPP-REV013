@@ -384,29 +384,117 @@ function CategorySheet({ onClose }: { onClose: () => void }) {
           </button>
         </form>
 
+        <p aria-live="polite" className="sr-only">
+          {status}
+        </p>
+
         <ul className="mt-4 list-none rounded-2xl bg-surface-container px-4 py-1">
           {list.length ? (
             list.map((c) => {
               const scope = c.walletId
                 ? wallets.find((w) => w.id === c.walletId)?.name ?? copy.allAccounts
                 : copy.allAccounts;
+              const used = categoryUsage(c.id);
+              const editing = editingId === c.id;
+              const message = rowError?.id === c.id ? rowError.message : null;
               return (
                 <li
                   key={c.id}
-                  className="flex items-center gap-3 border-b border-outline-variant/20 py-3 last:border-0"
+                  data-testid={`category-item-${c.id}`}
+                  className="flex flex-col gap-2 border-b border-outline-variant/20 py-3 last:border-0"
                 >
-                  <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="truncate text-sm font-medium text-on-surface">{c.name}</span>
-                    <span className="truncate text-[11px] text-on-surface-variant/80">{scope}</span>
-                  </span>
-                  <button
-                    type="button"
-                    aria-label={`${copy.delete} ${c.name}`}
-                    onClick={() => deleteCategory(c.id)}
-                    className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-variant text-error"
-                  >
-                    <Icon name="delete" className="text-[18px]" />
-                  </button>
+                  <div className="flex items-center gap-3">
+                    {editing ? (
+                      <input
+                        autoFocus
+                        value={editingName}
+                        maxLength={24}
+                        aria-label={`${copy.renameCategory} ${c.name}`}
+                        aria-invalid={!!message}
+                        data-testid={`category-rename-input-${c.id}`}
+                        onChange={(e) => setEditingName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            commitRename(c.id);
+                          }
+                          if (e.key === "Escape") {
+                            e.preventDefault();
+                            setEditingId(null);
+                            setRowError(null);
+                          }
+                        }}
+                        className="h-10 min-w-0 flex-1 rounded-2xl border border-outline-variant/30 bg-surface-container-high px-3 text-[14px] text-on-surface outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+                      />
+                    ) : (
+                      <span className="flex min-w-0 flex-1 flex-col">
+                        <span className="truncate text-sm font-medium text-on-surface">
+                          {c.name}
+                        </span>
+                        <span className="truncate text-[11px] text-on-surface-variant/80">
+                          {`${scope} · ${used}`}
+                        </span>
+                      </span>
+                    )}
+
+                    {editing ? (
+                      <>
+                        <button
+                          type="button"
+                          aria-label={copy.save}
+                          data-testid={`category-rename-save-${c.id}`}
+                          onClick={() => commitRename(c.id)}
+                          className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-container/40 text-primary focus-visible:ring-2 focus-visible:ring-primary/60"
+                        >
+                          <Icon name="check" className="text-[18px]" />
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={copy.cancel}
+                          onClick={() => {
+                            setEditingId(null);
+                            setRowError(null);
+                          }}
+                          className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-variant text-on-surface-variant focus-visible:ring-2 focus-visible:ring-primary/60"
+                        >
+                          <Icon name="close" className="text-[18px]" />
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          aria-label={`${copy.rename} ${c.name}`}
+                          data-testid={`category-rename-${c.id}`}
+                          onClick={() => startRename(c.id, c.name)}
+                          className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-variant text-on-surface-variant focus-visible:ring-2 focus-visible:ring-primary/60"
+                        >
+                          <Icon name="edit" className="text-[18px]" />
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={`${copy.delete} ${c.name}`}
+                          data-testid={`category-delete-${c.id}`}
+                          aria-disabled={used > 0}
+                          onClick={() => removeCategory(c.id)}
+                          className={`flex h-9 w-9 items-center justify-center rounded-full bg-surface-variant focus-visible:ring-2 focus-visible:ring-primary/60 ${
+                            used > 0 ? "text-on-surface-variant/40" : "text-error"
+                          }`}
+                        >
+                          <Icon name="delete" className="text-[18px]" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                  {message ? (
+                    <p
+                      role="alert"
+                      data-testid={`category-error-${c.id}`}
+                      className="m-0 text-[11px] font-semibold text-error"
+                    >
+                      {message}
+                    </p>
+                  ) : null}
                 </li>
               );
             })
@@ -416,6 +504,7 @@ function CategorySheet({ onClose }: { onClose: () => void }) {
             </li>
           )}
         </ul>
+
       </div>
     </div>
   );
