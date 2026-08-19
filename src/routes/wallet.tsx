@@ -507,9 +507,68 @@ function AccountHistorySheet({
             </span>
           </div>
 
-          {sorted.length ? (
-            <ul className="mt-4 list-none rounded-2xl bg-surface-container px-4 py-1">
-              {sorted.map((tx) => (
+          <div className="mt-4 flex flex-col gap-2">
+            <label className="flex flex-col gap-1">
+              <span className="sr-only">{copy.searchPlaceholder}</span>
+              <input
+                type="search"
+                value={keyword}
+                maxLength={40}
+                placeholder={copy.searchPlaceholder}
+                data-testid="history-search"
+                onChange={(e) => setKeyword(e.target.value)}
+                className="h-11 rounded-2xl border border-outline-variant/30 bg-surface-container px-4 text-[14px] text-on-surface outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+              />
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="flex flex-col gap-1">
+                <span className="text-meta text-on-surface-variant/80">{copy.dateFrom}</span>
+                <input
+                  type="date"
+                  value={from}
+                  max={to || undefined}
+                  aria-invalid={rangeInvalid}
+                  data-testid="history-date-from"
+                  onChange={(e) => setFrom(e.target.value)}
+                  className="h-11 rounded-2xl border border-outline-variant/30 bg-surface-container px-3 text-[13px] text-on-surface outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-meta text-on-surface-variant/80">{copy.dateTo}</span>
+                <input
+                  type="date"
+                  value={to}
+                  min={from || undefined}
+                  aria-invalid={rangeInvalid}
+                  data-testid="history-date-to"
+                  onChange={(e) => setTo(e.target.value)}
+                  className="h-11 rounded-2xl border border-outline-variant/30 bg-surface-container px-3 text-[13px] text-on-surface outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+                />
+              </label>
+            </div>
+            {dirty ? (
+              <button
+                type="button"
+                data-testid="history-reset"
+                onClick={() => {
+                  setKeyword("");
+                  setFrom("");
+                  setTo("");
+                }}
+                className="self-start rounded-full border border-outline-variant/30 px-3 py-1.5 text-[12px] font-semibold text-on-surface-variant focus-visible:ring-2 focus-visible:ring-primary/60"
+              >
+                {copy.resetFilters}
+              </button>
+            ) : null}
+            <p aria-live="polite" className="m-0 text-[11px] text-on-surface-variant/70">
+              {`${filtered.length}/${sorted.length}`}
+            </p>
+          </div>
+
+          {filtered.length ? (
+            <ul className="mt-2 list-none rounded-2xl bg-surface-container px-4 py-1">
+              {filtered.map((tx) => (
+
                 <li
                   key={tx.id}
                   className="flex items-center gap-3 border-b border-outline-variant/20 py-3 last:border-0"
