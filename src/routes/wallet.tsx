@@ -62,6 +62,31 @@ const WALLET_ICON: Record<WalletType, string> = {
 
 const AMOUNT_MAX = 1_000_000_000_000;
 
+type ProviderGroup = { provider: string; items: WalletAccount[] };
+
+/** Groups a wallet type's accounts by their provider sub-type, ordered by catalog. */
+function providerBreakdown(type: WalletType, items: WalletAccount[]): ProviderGroup[] {
+  const order = WALLET_PROVIDERS[type];
+  const map = new Map<string, WalletAccount[]>();
+  for (const item of items) {
+    const key = item.provider?.trim() || WALLET_TYPE_LABEL[type];
+    const bucket = map.get(key);
+    if (bucket) bucket.push(item);
+    else map.set(key, [item]);
+  }
+  return [...map.entries()]
+    .map(([provider, list]) => ({ provider, items: list }))
+    .sort((a, b) => {
+      const ia = order.indexOf(a.provider);
+      const ib = order.indexOf(b.provider);
+      if (ia === ib) return a.provider.localeCompare(b.provider);
+      if (ia < 0) return 1;
+      if (ib < 0) return -1;
+      return ia - ib;
+    });
+}
+
+
 function Wallet() {
   const {
     wallets,
